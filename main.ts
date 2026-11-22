@@ -4,7 +4,7 @@
 // carried down the stone steps to the cellar, held, quiet, with nothing
 // to prove. Plain concrete words, short lines, nothing that instructs
 // the reader to relax; the calm comes from the scene itself.
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const text = [
@@ -21,4 +21,8 @@ const text = [
 
 const outDir = "/output";
 mkdirSync(outDir, { recursive: true });
-writeFileSync(join(outDir, "entry.txt"), text, "utf8");
+// Write atomically: a reader of entry.txt never sees a half-written
+// verse if the process is interrupted mid-write.
+const tmpPath = join(outDir, `.entry.txt.tmp-${process.pid}`);
+writeFileSync(tmpPath, text, "utf8");
+renameSync(tmpPath, join(outDir, "entry.txt"));
